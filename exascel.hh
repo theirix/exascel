@@ -12,12 +12,34 @@ namespace domain
 	class Cell;
 	typedef std::shared_ptr<Cell> CellPtr;
 
+	class Term
+	{
+	public:
+		struct Kind
+		{
+			typedef enum { cell, num } type;
+		};
+
+		Term(CellPtr acell)
+			:kind(Kind::cell), cell(acell)
+		{
+		}
+		
+		Term(int anum)
+			: kind(Kind::num), num(anum)
+		{
+		}
+
+		Kind::type kind;
+		CellPtr cell;
+		int num;
+	};
+
 	class Expression
 	{
 		public:
-			std::list<CellPtr> terms;
+			std::list<Term> terms;
 			std::list<Operation::type> operations;
-
 	};
 
 	class Cell
