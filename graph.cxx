@@ -70,9 +70,9 @@ void Graph::build(TablePtr table)
 
 	for (auto tier: tiers)
 	{
-		std::cerr << "tier:\n";
+		std::cerr << "tier:\n\t";
 		for (auto cell: tier)
-			std::cerr << "\t" << cell->id() << "\n";
+			std::cerr << cell->id() << " ";
 		std::cerr << "\n";
 	}
 
