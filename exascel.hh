@@ -93,9 +93,17 @@ namespace domain
 	{
 	public:
 		typedef std::map<std::string, CellPtr> Cells;
+
 	private:
+		int w;
+		int h;
 		Cells m_cells;
 	public:
+
+		Table (int height, int width)
+				: h(height), w(width)
+		{
+		}
 
 		CellPtr get(std::string id)
 		{
@@ -116,6 +124,8 @@ namespace domain
 		{
 			return m_cells;
 		}
+
+		void print() {}
 	};
 
 	typedef std::shared_ptr<Table> TablePtr;

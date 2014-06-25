@@ -6,5 +6,23 @@ using namespace domain;
 
 TablePtr read_table(std::istream& input)
 {
-	return TablePtr(new Table());
+	int height, width;
+	std::string buf;
+	char delim = '\t';
+
+	input >> height >> width;
+
+	Table *table = new Table(height,width);
+
+	for (int i = 0; i < height; ++i)
+	{
+		for (int j = 0; j < width; ++j)
+		{
+			std::getline(input,buf,delim);
+			std::cout << buf << '\t';
+		}
+		std::cout << std::endl;
+	}
+
+	return TablePtr(table);
 }
