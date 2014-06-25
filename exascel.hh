@@ -92,9 +92,17 @@ namespace domain
 	class Table
 	{
 
+		int w;
+		int h;
+		
 		typedef std::map<std::string, CellPtr> Cells;
 		Cells m_cells;
 	public:
+
+		Cell (int height, int width)
+				: h(height), w(width)
+		{
+		}
 
 		CellPtr get(std::string id)
 		{
