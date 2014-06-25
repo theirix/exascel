@@ -98,12 +98,16 @@ namespace domain
 
 		CellPtr get(std::string id)
 		{
+			if (!m_cells[id])
+				throw std::runtime_error("Cannot extract empty cell");
 			return m_cells[id];
 		}
 		
 		void put(CellPtr cell)
 		{
 			assert(cell);
+			if (cell)
+				throw std::runtime_error("Cannot add empty cell");
 			m_cells[cell->id()] = cell;
 		}
 	};
