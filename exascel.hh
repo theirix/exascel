@@ -179,8 +179,15 @@ namespace domain
 				
 				for (int j = 0; j < w; ++j)
 				{
-					output << 
-						get(cur_column_name + std::to_string(i + 1))->text() << '\t';
+					CellPtr cell = get(cur_column_name + std::to_string(i + 1));
+					switch (cell->kind())
+					{
+						case Cell::Kind::text:	output << cell->text(); break;
+						case Cell::Kind::num:		output << cell->num(); break;
+						case Cell::Kind::expr:	output << "[expr]"; break;
+						default:								output << "[UNKNOWN]"; break;
+					}
+					output << "\t";
 						// cur_column_name + std::to_string(i + 1) << '\t';
 						// get("A1")->text() << '\t';
 					cur_column_name = next_column_name(cur_column_name);
