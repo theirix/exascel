@@ -91,11 +91,12 @@ namespace domain
 	
 	class Table
 	{
+	public:
+		typedef std::map<std::string, CellPtr> Cells;
 
+	private:
 		int w;
 		int h;
-		
-		typedef std::map<std::string, CellPtr> Cells;
 		Cells m_cells;
 	public:
 
@@ -114,9 +115,14 @@ namespace domain
 		void put(CellPtr cell)
 		{
 			assert(cell);
-			if (cell)
+			if (!cell)
 				throw std::runtime_error("Cannot add empty cell");
 			m_cells[cell->id()] = cell;
+		}
+
+		const Cells& cells() const
+		{
+			return m_cells;
 		}
 
 		void print() {}

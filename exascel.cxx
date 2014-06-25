@@ -26,7 +26,14 @@ namespace test
 
 int main(int argc, char *argv[])
 {
-	TablePtr table = read_table(std::cin);
-	//table = test::create_test_table();
+	TablePtr table;
+	if (argc == 2 && !strcmp(argv[1], "test"))
+		table = test::create_test_table();
+	else
+		table = read_table(std::cin);
+
+	Graph *graph = new Graph();
+	graph->build(table);
+
 	return 0;
 }
