@@ -12,16 +12,16 @@ namespace test
 		TablePtr table(new Table(3,4));
 		table->put(CellPtr(new Cell("a1", 12)));
 		table->put(CellPtr(new Cell("a2")));
-		table->put(CellPtr(new Cell("a3", 3)));
-		table->put(CellPtr(new Cell("a4", "Sample")));
+		table->put(CellPtr(new Cell("a3", "Test")));
 		table->put(CellPtr(new Cell("b1")));
 		table->put(CellPtr(new Cell("b2")));
 		table->put(CellPtr(new Cell("b3")));
-		table->put(CellPtr(new Cell("b4", "Spread")));
-		table->put(CellPtr(new Cell("c1", "Test")));
+		table->put(CellPtr(new Cell("c1", 3)));
 		table->put(CellPtr(new Cell("c2")));
 		table->put(CellPtr(new Cell("c3", 5)));
-		table->put(CellPtr(new Cell("b4", "Sheet")));
+		table->put(CellPtr(new Cell("d1", "Sample")));
+		table->put(CellPtr(new Cell("d2", "Spread")));
+		table->put(CellPtr(new Cell("d3", "Sheet")));
 
 		table->get("b1")->expr().terms.push_back(Term(table->get("c2")));
 		
@@ -41,6 +41,10 @@ namespace test
 		table->get("c2")->expr().terms.push_back(Term(table->get("b3")));
 		table->get("c2")->expr().terms.push_back(Term(table->get("c3")));
 		table->get("a2")->expr().operations.push_back(Operation::sub);
+		
+		table->get("b3")->expr().terms.push_back(Term(4));
+		table->get("b3")->expr().terms.push_back(Term(3));
+		table->get("b3")->expr().operations.push_back(Operation::sub);
 
 		return table;
 	}

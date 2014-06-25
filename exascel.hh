@@ -111,6 +111,8 @@ namespace domain
 
 	};
 	
+	typedef std::vector<CellPtr> CellVec;
+	
 	class Table
 	{
 	public:
