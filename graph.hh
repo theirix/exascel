@@ -3,6 +3,10 @@
 
 namespace domain
 {
+	/*
+	 * Class allows to build tiered representation of evaluation
+	 * algorithm, evaluate graph expression.
+	 */
 	class Graph
 	{
 		TablePtr m_table;

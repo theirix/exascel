@@ -4,6 +4,9 @@
 
 using namespace domain;
 
+/*
+ * Print helper
+ */
 void Graph::print_tiers()
 {
 	for (auto tier: m_tiers)
@@ -15,6 +18,9 @@ void Graph::print_tiers()
 	}
 }
 
+/*
+ * Build graph tiers
+ */
 void Graph::build(TablePtr table)
 {
 	m_table = table;
@@ -84,6 +90,7 @@ void Graph::evaluate()
 
 	}
 
+	// dump
 	for (auto kv: m_table->cells())
 	{
 		if (kv.second->kind() == Cell::Kind::expr)
@@ -93,6 +100,9 @@ void Graph::evaluate()
 	}
 }
 
+/*
+ * Fetch int value from term (cell or scalar)
+ */
 int read_ref_or_value(Term term)
 {
 	if (term.kind == Term::Kind::ref)
@@ -104,6 +114,9 @@ int read_ref_or_value(Term term)
 	return term.num;
 }
 
+/*
+ * Evaluate an expression
+ */
 double Graph::evaluate_expression (Expression expression)
 {
 	double value;

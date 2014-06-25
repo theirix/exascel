@@ -159,7 +159,7 @@ namespace domain
 		{
 		}
 
-		CellPtr get(std::string id) // why getting errors trying const?
+		CellPtr get(std::string id)
 		{
 			if (!m_cells[id])
 				throw std::runtime_error("Cannot extract empty cell by" + id);
