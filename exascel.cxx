@@ -1,6 +1,7 @@
 #include "common.hh"
 #include "exascel.hh"
 #include "reader.hh"
+#include "graph.hh"
 
 using namespace domain;
 
