@@ -12,16 +12,20 @@ TablePtr read_table(std::istream& input)
 
 	input >> height >> width;
 
+	// std::getline(input,buf);
+
 	Table *table = new Table(height,width);
 
 	for (int i = 0; i < height; ++i)
 	{
-		for (int j = 0; j < width; ++j)
+		for (int j = 0; j < width - 1; ++j)
 		{
 			std::getline(input,buf,delim);
+			table->put(CellPtr(new Cell("a1", 12)));
 			std::cout << buf << '\t';
 		}
-		std::cout << std::endl;
+		std::getline(input,buf);
+		std::cout << buf << std::endl;
 	}
 
 	return TablePtr(table);
