@@ -54,8 +54,27 @@ int main(int argc, char *argv[])
 	else
 		table = read_table(std::cin);
 
+	table->print(std::cout);
+
 	Graph *graph = new Graph();
 	graph->build(table);
 
 	return 0;
+}
+
+std::string domain::next_column_name (std::string prev_column_name)
+{
+	for (int i = prev_column_name.size() - 1; i >= 0; --i)
+	{
+		if (prev_column_name[i] == 'Z')
+		{
+			prev_column_name[i] = 'A'; 
+		}
+		else {
+			prev_column_name[i] += 1;
+			return prev_column_name;
+		} 
+	}
+
+	return std::string("A") + prev_column_name;
 }

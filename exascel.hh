@@ -3,6 +3,8 @@
 
 namespace domain
 {
+	std::string next_column_name (std::string prev_column_name);
+
 	struct Operation
 	{
 		typedef enum { add, sub, mul, div } type;
@@ -127,7 +129,7 @@ namespace domain
 		{
 		}
 
-		CellPtr get(std::string id)
+		CellPtr get(std::string id) // why getting errors trying const?
 		{
 			if (!m_cells[id])
 				throw std::runtime_error("Cannot extract empty cell");
@@ -147,7 +149,35 @@ namespace domain
 			return m_cells;
 		}
 
-		void print() {}
+		void print(std::ostream& output)
+		{
+			output << '\t';
+			std::string cur_column_name = "A";
+
+			for (int i = 0; i < w; ++i)
+			{
+				output << cur_column_name << '\t';
+				cur_column_name = next_column_name(cur_column_name);
+			}
+
+
+			for (int i = 0; i < h; ++i)
+			{
+				output << std::endl << (i + 1) << '\t';
+				cur_column_name = "A";
+				
+				for (int j = 0; j < w; ++j)
+				{
+					output << 
+						get(cur_column_name + std::to_string(i + 1))->text() << '\t';
+						// cur_column_name + std::to_string(i + 1) << '\t';
+						// get("A1")->text() << '\t';
+					cur_column_name = next_column_name(cur_column_name);
+				}
+			}
+
+			output << std::endl;
+		}
 	};
 
 	typedef std::shared_ptr<Table> TablePtr;
