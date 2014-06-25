@@ -33,11 +33,12 @@ namespace domain
 			}
 
 	};
+	typedef std::shared_ptr<Cell> CellPtr;
 
 	class Expression
 	{
 		public:
-			std::list<Cell*> terms;
+			std::list<CellPtr> terms;
 			std::list<Operation::type> operations;
 
 	};
@@ -45,21 +46,23 @@ namespace domain
 	class Table
 	{
 
-		typedef std::map<std::string, Cell*> Cells;
+		typedef std::map<std::string, CellPtr> Cells;
 		Cells m_cells;
 	public:
 
-		Cell* get(std::string id)
+		CellPtr get(std::string id)
 		{
 			return m_cells[id];
 		}
 		
-		void put(Cell* cell)
+		void put(CellPtr cell)
 		{
 			assert(cell);
 			m_cells[cell->id()] = cell;
 		}
 	};
+
+	typedef std::shared_ptr<Table> TablePtr;
 
 };
 

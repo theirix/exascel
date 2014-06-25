@@ -1,7 +1,6 @@
 #ifndef HEADER_READER
 #define HEADER_READER
 
-void read_table(std::istream& input,
-		Table* table);
+domain::TablePtr read_table(std::istream& input);
 
 #endif

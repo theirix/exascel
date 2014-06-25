@@ -1,1 +1,1 @@
-add_executable (exascel exascel.cxx)
+add_executable (exascel exascel.cxx reader.cxx)
