@@ -12,7 +12,8 @@ TablePtr read_table(std::istream& input)
 
 	input >> height >> width;
 
-	// std::getline(input,buf);
+	//ignore endline symbol from first row
+	std::getline(input,buf,'\n');
 
 	Table *table = new Table(height,width);
 
@@ -20,8 +21,7 @@ TablePtr read_table(std::istream& input)
 	{
 		for (int j = 0; j < width - 1; ++j)
 		{
-			std::getline(input,buf,delim);
-			table->put(CellPtr(new Cell("a1", 12)));
+			std::getline(input, buf, delim);
 			std::cout << buf << '\t';
 		}
 		std::getline(input,buf);
