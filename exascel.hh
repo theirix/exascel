@@ -60,6 +60,8 @@ namespace domain
 			assert(cell);
 			m_cells[cell->id()] = cell;
 		}
+
+		void print() {}
 	};
 
 	typedef std::shared_ptr<Table> TablePtr;
