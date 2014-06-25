@@ -9,13 +9,16 @@ using namespace domain;
  */
 void Graph::print_tiers()
 {
+	size_t max_width = 0;
 	for (auto tier: m_tiers)
 	{
 		std::cerr << "tier:\t";
 		for (auto cell: tier)
 			std::cerr << cell->id() << " ";
 		std::cerr << "\n";
+		max_width = std::max(max_width, tier.size());
 	}
+	std::cerr << "maximum parallel width " << max_width << "\n";
 }
 
 /*

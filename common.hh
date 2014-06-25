@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdexcept>
 #include <cassert>
+#include <algorithm>
 #include <iostream>
 
 #endif
