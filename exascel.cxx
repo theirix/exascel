@@ -1,6 +1,7 @@
 #include "common.hh"
 #include "exascel.hh"
 #include "reader.hh"
+#include "graph.hh"
 
 using namespace domain;
 
@@ -15,6 +16,10 @@ namespace test
 		table->put(CellPtr(new Cell("b1")));
 		table->put(CellPtr(new Cell("b2", "Foobar")));
 		table->put(CellPtr(new Cell("b3", 42)));
+
+		table->get("a2")->expr().terms.push_back(table->get("a1"));
+		table->get("a2")->expr().terms.push_back(table->get("a3"));
+		table->get("a2")->expr().operations.push_back(Operation::add);
 		return table;
 	}
 };
