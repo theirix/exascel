@@ -9,7 +9,7 @@ namespace test
 {
 	TablePtr create_test_table()
 	{
-		TablePtr table(new Table());
+		TablePtr table(new Table(3,4));
 		table->put(CellPtr(new Cell("a1", 12)));
 		table->put(CellPtr(new Cell("a2")));
 		table->put(CellPtr(new Cell("a3", 3)));
@@ -27,6 +27,6 @@ namespace test
 int main(int argc, char *argv[])
 {
 	TablePtr table = read_table(std::cin);
-	table = test::create_test_table();
+	//table = test::create_test_table();
 	return 0;
 }

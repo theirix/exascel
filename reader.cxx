@@ -12,7 +12,7 @@ TablePtr read_table(std::istream& input)
 
 	input >> height >> width;
 
-	TablePtr table(height,width);
+	Table *table = new Table(height,width);
 
 	for (int i = 0; i < height; ++i)
 	{
@@ -21,8 +21,8 @@ TablePtr read_table(std::istream& input)
 			std::getline(input,buf,delim);
 			std::cout << buf << '\t';
 		}
-		std::cout << endl;
+		std::cout << std::endl;
 	}
 
-	return table;
+	return TablePtr(table);
 }

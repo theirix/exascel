@@ -99,7 +99,7 @@ namespace domain
 		Cells m_cells;
 	public:
 
-		Cell (int height, int width)
+		Table (int height, int width)
 				: h(height), w(width)
 		{
 		}
