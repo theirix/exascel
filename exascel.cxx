@@ -52,25 +52,32 @@ namespace test
 
 int main(int argc, char *argv[])
 {
+	const bool debug = argc == 2 && !strcmp(argv[1], "test");
+	const bool verbose = true;
+
 	TablePtr table;
-	if (argc == 2 && !strcmp(argv[1], "test"))
-	{
+	if (debug)
 		table = test::create_test_table();
-		Graph *graph = new Graph();
-		graph->build(table);
-		table->print_dot(std::cerr);
-		graph->print_tiers();
-		graph->evaluate();
-		table->print_dot(std::cerr);
-		return 0;
-	}
 	else
 		table = read_table(std::cin);
 
-	table->print(std::cout);
-
 	Graph *graph = new Graph();
 	graph->build(table);
+
+	if (verbose)
+	{
+		table->print_dot(std::cerr);
+		graph->print_tiers();
+	}
+
+	graph->evaluate();
+	
+	if (verbose)
+	{
+		table->print_dot(std::cerr);
+	}
+
+	table->print(std::cout);
 
 	return 0;
 }
@@ -90,4 +97,62 @@ std::string domain::next_column_name (std::string prev_column_name)
 	}
 
 	return std::string("A") + prev_column_name;
+}
+		
+void Table::print_dot(std::ostream& output)
+{
+	output << "\ndigraph D {\n";
+	for (auto& kv: cells())
+	{
+		CellPtr cell = kv.second;
+		if (cell->kind() == Cell::Kind::expr)
+		{
+			for (auto t: cell->expr().terms)
+				if (t.kind == Term::Kind::ref)
+					output << "\t" << t.cell->id()  << " -> " 
+						<< cell->id() << std::endl;
+		}
+		else if (cell->kind() == Cell::Kind::num)
+		{
+			output << "\t" << cell->id() << " [ style=filled ];\n";
+		}
+	}
+	output << "}\n\n";
+}
+	
+void Table::print(std::ostream& output)
+{
+	output << '\t';
+	std::string cur_column_name = "A";
+
+	for (int i = 0; i < w; ++i)
+	{
+		output << cur_column_name << '\t';
+		cur_column_name = next_column_name(cur_column_name);
+	}
+
+
+	for (int i = 0; i < h; ++i)
+	{
+		output << std::endl << (i + 1) << '\t';
+		cur_column_name = "A";
+
+		for (int j = 0; j < w; ++j)
+		{
+			CellPtr cell = get(cur_column_name + std::to_string(i + 1));
+			switch (cell->kind())
+			{
+				case Cell::Kind::text:	output << cell->text(); break;
+				case Cell::Kind::num:		output << cell->num(); break;
+				case Cell::Kind::expr:	output << "[expr]"; break;
+				default:								output << "[UNKNOWN]"; break;
+			}
+			output << "\t";
+			// cur_column_name + std::to_string(i + 1) << '\t';
+			// get("A1")->text() << '\t';
+			cur_column_name = next_column_name(cur_column_name);
+		}
+	}
+
+	output << std::endl;
 }

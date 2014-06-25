@@ -3,8 +3,14 @@
 
 namespace domain
 {
+	/*
+	 * Helper functions
+	 */
 	std::string next_column_name (std::string prev_column_name);
 
+	/*
+	 * Generic operation
+	 */
 	struct Operation
 	{
 		typedef enum { add, sub, mul, div } type;
@@ -14,16 +20,19 @@ namespace domain
 	class Cell;
 	typedef std::shared_ptr<Cell> CellPtr;
 
+	/*
+	 * Generic term - cell reference or value
+	 */
 	class Term
 	{
 	public:
 		struct Kind
 		{
-			typedef enum { cell, num } type;
+			typedef enum { ref, num } type;
 		};
 
 		Term(CellPtr acell)
-			:kind(Kind::cell), cell(acell)
+			:kind(Kind::ref), cell(acell)
 		{
 		}
 		
@@ -37,6 +46,10 @@ namespace domain
 		int num;
 	};
 
+
+	/*
+	 * Represents a left-associative expression by given grammar
+	 */
 	class Expression
 	{
 		public:
@@ -44,6 +57,9 @@ namespace domain
 			std::list<Operation::type> operations;
 	};
 
+	/*
+	 * Represents a single typed cell of table 
+	 */
 	class Cell
 	{
 		public:
@@ -124,6 +140,9 @@ namespace domain
 	
 	typedef std::vector<CellPtr> CellVec;
 	
+	/*
+	 * Table. Stores cells, provides associative access by their id
+	 */
 	class Table
 	{
 	public:
@@ -160,63 +179,9 @@ namespace domain
 			return m_cells;
 		}
 
-		void print(std::ostream& output)
-		{
-			output << '\t';
-			std::string cur_column_name = "A";
+		void print(std::ostream& output);
 
-			for (int i = 0; i < w; ++i)
-			{
-				output << cur_column_name << '\t';
-				cur_column_name = next_column_name(cur_column_name);
-			}
-
-
-			for (int i = 0; i < h; ++i)
-			{
-				output << std::endl << (i + 1) << '\t';
-				cur_column_name = "A";
-				
-				for (int j = 0; j < w; ++j)
-				{
-					CellPtr cell = get(cur_column_name + std::to_string(i + 1));
-					switch (cell->kind())
-					{
-						case Cell::Kind::text:	output << cell->text(); break;
-						case Cell::Kind::num:		output << cell->num(); break;
-						case Cell::Kind::expr:	output << "[expr]"; break;
-						default:								output << "[UNKNOWN]"; break;
-					}
-					output << "\t";
-						// cur_column_name + std::to_string(i + 1) << '\t';
-						// get("A1")->text() << '\t';
-					cur_column_name = next_column_name(cur_column_name);
-				}
-			}
-
-			output << std::endl;
-		}
-
-		void print_dot(std::ostream& os)
-		{
-			os << "\ndigraph D {\n";
-			for (auto& kv: cells())
-			{
-				CellPtr cell = kv.second;
-				if (cell->kind() == Cell::Kind::expr)
-				{
-					for (auto t: cell->expr().terms)
-						if (t.kind == Term::Kind::cell)
-							os << "\t" << t.cell->id()  << " -> " 
-								<< cell->id() << std::endl;
-				}
-				else if (cell->kind() == Cell::Kind::num)
-				{
-					os << "\t" << cell->id() << " [ style=filled ];\n";
-				}
-			}
-			os << "}\n\n";
-		}
+		void print_dot(std::ostream& output);
 	};
 
 	typedef std::shared_ptr<Table> TablePtr;

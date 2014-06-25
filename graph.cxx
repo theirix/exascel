@@ -38,7 +38,7 @@ void Graph::build(TablePtr table)
 			{
 				for (auto t: cell->expr().terms)
 				{
-					if (t.kind == Term::Kind::cell &&
+					if (t.kind == Term::Kind::ref &&
 							std::find(all_cells.begin(), all_cells.end(), 
 								t.cell) != all_cells.end())
 						save = false;
@@ -51,12 +51,6 @@ void Graph::build(TablePtr table)
 			if (save)
 				current_tier.push_back(cell);
 		}
-
-#if 0
-		std::cerr << "In current tier: " << current_tier.size() << ", " << all_cells.size() << ":\n";
-		for (auto cell: current_tier)
-			std::cerr << "\t" << cell->id() << "\n";
-#endif
 
 		for (auto cell: current_tier)
 			all_cells.remove(cell);
@@ -79,12 +73,7 @@ void Graph::evaluate()
 				{
 					if (!(term.kind == Term::Kind::num ||
 								term.cell->kind() == Cell::Kind::num))
-					{
-						std::cerr << "Dependency error for cell "
-							<< cell->id() << ", term " << term.cell->id()
-							<< std::endl;
-						throw std::runtime_error("Dependency error");
-					}
+						throw std::runtime_error("Dependency error for " + cell->id());
 				}
 
 				int value = (int)evaluate_expression(cell->expr());
@@ -104,9 +93,9 @@ void Graph::evaluate()
 	}
 }
 
-int read_num(Term term)
+int read_ref_or_value(Term term)
 {
-	if (term.kind == Term::Kind::cell)
+	if (term.kind == Term::Kind::ref)
 	{
 		if (term.cell->kind() != Cell::Kind::num)
 			throw std::runtime_error("Wrong type");
@@ -122,10 +111,10 @@ double Graph::evaluate_expression (Expression expression)
 		left = expression.terms.begin(), right = left;
 	std::list<Operation::type>::const_iterator
 		op = expression.operations.begin();
-	value = read_num(*left);
+	value = read_ref_or_value(*left);
 	for (++right; right != expression.terms.end(); ++left, ++right, ++op)
 	{
-		double rhs = read_num(*right);
+		double rhs = read_ref_or_value(*right);
 		switch (*op)
 		{
 			case Operation::add: value += rhs; break;
