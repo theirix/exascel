@@ -54,7 +54,7 @@ namespace domain
 		private:
 
 			std::string m_id;
-			const Kind::type m_kind;
+			Kind::type m_kind;
 
 			// for expression cells
 			Expression m_expr;
@@ -111,6 +111,15 @@ namespace domain
 				return m_expr;
 			}
 
+			void set_evaluated(int num)
+			{
+				if (m_kind != Kind::expr)
+					throw std::runtime_error("Wrong cell type");
+				m_expr = Expression();
+				m_num = num;
+				m_kind = Kind::num;
+			}
+
 	};
 	
 	typedef std::vector<CellPtr> CellVec;
@@ -134,7 +143,7 @@ namespace domain
 		CellPtr get(std::string id) // why getting errors trying const?
 		{
 			if (!m_cells[id])
-				throw std::runtime_error("Cannot extract empty cell");
+				throw std::runtime_error("Cannot extract empty cell by" + id);
 			return m_cells[id];
 		}
 		
@@ -179,6 +188,27 @@ namespace domain
 			}
 
 			output << std::endl;
+		}
+
+		void print_dot(std::ostream& os)
+		{
+			os << "\ndigraph D {\n";
+			for (auto& kv: cells())
+			{
+				CellPtr cell = kv.second;
+				if (cell->kind() == Cell::Kind::expr)
+				{
+					for (auto t: cell->expr().terms)
+						if (t.kind == Term::Kind::cell)
+							os << "\t" << t.cell->id()  << " -> " 
+								<< cell->id() << std::endl;
+				}
+				else if (cell->kind() == Cell::Kind::num)
+				{
+					os << "\t" << cell->id() << " [ style=filled ];\n";
+				}
+			}
+			os << "}\n\n";
 		}
 	};
 

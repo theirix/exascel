@@ -10,41 +10,41 @@ namespace test
 	TablePtr create_test_table()
 	{
 		TablePtr table(new Table(3,4));
-		table->put(CellPtr(new Cell("a1", 12)));
-		table->put(CellPtr(new Cell("a2")));
-		table->put(CellPtr(new Cell("a3", "Test")));
-		table->put(CellPtr(new Cell("b1")));
-		table->put(CellPtr(new Cell("b2")));
-		table->put(CellPtr(new Cell("b3")));
-		table->put(CellPtr(new Cell("c1", 3)));
-		table->put(CellPtr(new Cell("c2")));
-		table->put(CellPtr(new Cell("c3", 5)));
-		table->put(CellPtr(new Cell("d1", "Sample")));
-		table->put(CellPtr(new Cell("d2", "Spread")));
-		table->put(CellPtr(new Cell("d3", "Sheet")));
+		table->put(CellPtr(new Cell("A1", 12)));
+		table->put(CellPtr(new Cell("A2")));
+		table->put(CellPtr(new Cell("A3", "Test")));
+		table->put(CellPtr(new Cell("B1")));
+		table->put(CellPtr(new Cell("B2")));
+		table->put(CellPtr(new Cell("B3")));
+		table->put(CellPtr(new Cell("C1", 3)));
+		table->put(CellPtr(new Cell("C2")));
+		table->put(CellPtr(new Cell("C3", 5)));
+		table->put(CellPtr(new Cell("D1", "Sample")));
+		table->put(CellPtr(new Cell("D2", "Spread")));
+		table->put(CellPtr(new Cell("D3", "Sheet")));
 
-		table->get("b1")->expr().terms.push_back(Term(table->get("c2")));
+		table->get("B1")->expr().terms.push_back(Term(table->get("C2")));
 		
-		table->get("a2")->expr().terms.push_back(Term(table->get("a1")));
-		table->get("a2")->expr().terms.push_back(Term(table->get("b1")));
-		table->get("a2")->expr().terms.push_back(Term(table->get("c1")));
-		table->get("a2")->expr().terms.push_back(Term(5));
+		table->get("A2")->expr().terms.push_back(Term(table->get("A1")));
+		table->get("A2")->expr().terms.push_back(Term(table->get("B1")));
+		table->get("A2")->expr().terms.push_back(Term(table->get("C1")));
+		table->get("A2")->expr().terms.push_back(Term(5));
 
-		table->get("a2")->expr().operations.push_back(Operation::add);
-		table->get("a2")->expr().operations.push_back(Operation::mul);
-		table->get("a2")->expr().operations.push_back(Operation::div);
+		table->get("A2")->expr().operations.push_back(Operation::add);
+		table->get("A2")->expr().operations.push_back(Operation::mul);
+		table->get("A2")->expr().operations.push_back(Operation::div);
 
-		table->get("b2")->expr().terms.push_back(Term(table->get("a2")));
-		table->get("b2")->expr().terms.push_back(Term(table->get("b1")));
-		table->get("b2")->expr().operations.push_back(Operation::mul);
+		table->get("B2")->expr().terms.push_back(Term(table->get("A2")));
+		table->get("B2")->expr().terms.push_back(Term(table->get("B1")));
+		table->get("B2")->expr().operations.push_back(Operation::mul);
 		
-		table->get("c2")->expr().terms.push_back(Term(table->get("b3")));
-		table->get("c2")->expr().terms.push_back(Term(table->get("c3")));
-		table->get("a2")->expr().operations.push_back(Operation::sub);
+		table->get("C2")->expr().terms.push_back(Term(table->get("B3")));
+		table->get("C2")->expr().terms.push_back(Term(table->get("C3")));
+		table->get("C2")->expr().operations.push_back(Operation::sub);
 		
-		table->get("b3")->expr().terms.push_back(Term(4));
-		table->get("b3")->expr().terms.push_back(Term(3));
-		table->get("b3")->expr().operations.push_back(Operation::sub);
+		table->get("B3")->expr().terms.push_back(Term(4));
+		table->get("B3")->expr().terms.push_back(Term(3));
+		table->get("B3")->expr().operations.push_back(Operation::sub);
 
 		return table;
 	}
@@ -54,7 +54,16 @@ int main(int argc, char *argv[])
 {
 	TablePtr table;
 	if (argc == 2 && !strcmp(argv[1], "test"))
+	{
 		table = test::create_test_table();
+		Graph *graph = new Graph();
+		graph->build(table);
+		table->print_dot(std::cerr);
+		graph->print_tiers();
+		graph->evaluate();
+		table->print_dot(std::cerr);
+		return 0;
+	}
 	else
 		table = read_table(std::cin);
 

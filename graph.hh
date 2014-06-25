@@ -3,25 +3,18 @@
 
 namespace domain
 {
-	class Node;
-
-	class Node
-	{
-		std::vector<Node*> childs;
-	};
-	
-
 	class Graph
 	{
-		Node *m_root;
+		TablePtr m_table;
+		std::vector<CellVec> m_tiers;
+		double evaluate_expression (Expression expression);
 	public:
 
-		Graph()
-			: m_root(NULL)
-		{
-		}
-
 		void build (TablePtr table);
+
+		void evaluate();
+
+		void print_tiers();
 	};
 };
 
