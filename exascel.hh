@@ -9,6 +9,17 @@ namespace domain
 	};
 
 
+	class Cell;
+	typedef std::shared_ptr<Cell> CellPtr;
+
+	class Expression
+	{
+		public:
+			std::list<CellPtr> terms;
+			std::list<Operation::type> operations;
+
+	};
+
 	class Cell
 	{
 		public:
@@ -20,26 +31,61 @@ namespace domain
 
 			std::string m_id;
 			const Kind::type m_kind;
+
+			// for expression cells
+			Expression m_expr;
+			// for text cells
+			std::string m_text;
+			// for numeric cells
+			int m_num;
 		public:
 
-			Cell (std::string id, Kind::type kind)
-				: m_id(id), m_kind(kind)
+			Cell (std::string id, std::string text)
+				: m_id(id), m_kind(Kind::text), m_text(text)
 			{
 			}
+			
+			Cell (std::string id, int num)
+				: m_id(id), m_kind(Kind::num), m_num(num)
+			{
+			}
+			
+			Cell (std::string id)
+				: m_id(id), m_kind(Kind::expr)
+			{
+			}
+			
 
 			std::string id() const
 			{
 				return m_id;
 			}
+			
+			Kind::type kind() const
+			{
+				return m_kind;
+			}
+			
+			std::string text() const
+			{
+				if (m_kind != Kind::text)
+					throw std::runtime_error("Wrong cell type");
+				return m_text;
+			}
+			
+			int num() const
+			{
+				if (m_kind != Kind::num)
+					throw std::runtime_error("Wrong cell type");
+				return m_num;
+			}
 
-	};
-	typedef std::shared_ptr<Cell> CellPtr;
-
-	class Expression
-	{
-		public:
-			std::list<CellPtr> terms;
-			std::list<Operation::type> operations;
+			Expression& expr()
+			{
+				if (m_kind != Kind::expr)
+					throw std::runtime_error("Wrong cell type");
+				return m_expr;
+			}
 
 	};
 	
