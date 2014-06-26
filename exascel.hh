@@ -79,6 +79,13 @@ namespace domain
 			// for numeric cells
 			int m_num;
 		public:
+			struct Tag{};
+
+			Cell(std::string id, Tag)
+				: m_id(id), m_kind(Kind::none)
+			{
+
+			}
 
 			Cell (std::string id, std::string text)
 				: m_id(id), m_kind(Kind::text), m_text(text)
@@ -95,6 +102,16 @@ namespace domain
 			{
 			}
 			
+
+			void morph (Kind::type new_kind)
+			{
+				m_kind = new_kind;
+			}
+
+			Kind::type get_type ()
+			{
+				return m_kind;
+			}
 
 			std::string id() const
 			{
