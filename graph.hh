@@ -11,7 +11,10 @@ namespace domain
 	{
 		TablePtr m_table;
 		std::vector<CellVec> m_tiers;
-		double evaluate_expression (Expression expression);
+		size_t m_max_width;
+
+		void evaluate_seq();
+		void evaluate_openmp();
 	public:
 
 		void build (TablePtr table);

@@ -66,7 +66,9 @@ int main(int argc, char *argv[])
 
 	if (verbose)
 	{
-		table->print_dot(std::cerr);
+		std::ofstream file("foo.dot");
+		table->print_dot(file);
+		file.close();
 		graph->print_tiers();
 	}
 

@@ -2,6 +2,8 @@
 #include "exascel.hh"
 #include "graph.hh"
 
+#include <omp.h>
+
 using namespace domain;
 
 /*
@@ -9,16 +11,14 @@ using namespace domain;
  */
 void Graph::print_tiers()
 {
-	size_t max_width = 0;
 	for (auto tier: m_tiers)
 	{
 		std::cerr << "tier:\t";
 		for (auto cell: tier)
 			std::cerr << cell->id() << " ";
 		std::cerr << "\n";
-		max_width = std::max(max_width, tier.size());
 	}
-	std::cerr << "maximum parallel width " << max_width << "\n";
+	std::cerr << "maximum parallel width " << m_max_width << "\n";
 }
 
 /*
@@ -28,6 +28,7 @@ void Graph::build(TablePtr table)
 {
 	m_table = table;
 	m_tiers.clear();
+	m_max_width = 0;
 
 	std::list<CellPtr> all_cells;
 
@@ -65,11 +66,66 @@ void Graph::build(TablePtr table)
 			all_cells.remove(cell);
 		if (!current_tier.empty())
 			m_tiers.push_back(current_tier);
+
+		m_max_width = std::max(m_max_width, current_tier.size());
 	}
 
 }
-		
+
+/*
+ * Fetch int value from term (cell or scalar)
+ */
+int read_ref_or_value(Term term)
+{
+	if (term.kind == Term::Kind::ref)
+	{
+		if (term.cell->kind() != Cell::Kind::num)
+			throw std::runtime_error("Wrong type");
+		return term.cell->num();
+	}
+	return term.num;
+}
+
+/*
+ * Evaluate an expression
+ */
+double evaluate_expression (Expression expression)
+{
+	double value;
+	std::list<Term>::const_iterator 
+		left = expression.terms.begin(), right = left;
+	std::list<Operation::type>::const_iterator
+		op = expression.operations.begin();
+	value = read_ref_or_value(*left);
+	for (++right; right != expression.terms.end(); ++left, ++right, ++op)
+	{
+		double rhs = read_ref_or_value(*right);
+		switch (*op)
+		{
+			case Operation::add: value += rhs; break;
+			case Operation::sub: value -= rhs; break;
+			case Operation::mul: value *= rhs; break;
+			case Operation::div: value /= rhs; break;
+		}
+	}
+	return value;
+}
+
 void Graph::evaluate()
+{
+	evaluate_openmp();
+
+	// dump
+	for (auto kv: m_table->cells())
+	{
+		if (kv.second->kind() == Cell::Kind::expr)
+			throw std::runtime_error("Wrong type " + kv.second->id());
+		if (kv.second->kind() == Cell::Kind::num)
+			std::cerr << kv.second->id() << " = " << kv.second->num() << "\n";
+	}
+}
+
+void Graph::evaluate_seq()
 {
 	for (auto tier: m_tiers)
 	{
@@ -93,51 +149,38 @@ void Graph::evaluate()
 
 	}
 
-	// dump
-	for (auto kv: m_table->cells())
-	{
-		if (kv.second->kind() == Cell::Kind::expr)
-			throw std::runtime_error("Wrong type " + kv.second->id());
-		if (kv.second->kind() == Cell::Kind::num)
-			std::cerr << kv.second->id() << " = " << kv.second->num() << "\n";
-	}
 }
 
-/*
- * Fetch int value from term (cell or scalar)
- */
-int read_ref_or_value(Term term)
+void Graph::evaluate_openmp()
 {
-	if (term.kind == Term::Kind::ref)
+	std::cerr << "Paralleling for " << m_max_width << std::endl;
+	
+#pragma omp parallel num_threads(m_max_width)
+	for (auto tier: m_tiers)
 	{
-		if (term.cell->kind() != Cell::Kind::num)
-			throw std::runtime_error("Wrong type");
-		return term.cell->num();
-	}
-	return term.num;
-}
-
-/*
- * Evaluate an expression
- */
-double Graph::evaluate_expression (Expression expression)
-{
-	double value;
-	std::list<Term>::const_iterator 
-		left = expression.terms.begin(), right = left;
-	std::list<Operation::type>::const_iterator
-		op = expression.operations.begin();
-	value = read_ref_or_value(*left);
-	for (++right; right != expression.terms.end(); ++left, ++right, ++op)
-	{
-		double rhs = read_ref_or_value(*right);
-		switch (*op)
+#pragma omp critical
 		{
-			case Operation::add: value += rhs; break;
-			case Operation::sub: value -= rhs; break;
-			case Operation::mul: value *= rhs; break;
-			case Operation::div: value /= rhs; break;
+		//std::cerr << "thread " << omp_get_thread_num() << std::endl;
 		}
+#pragma omp for
+		for (size_t i = 0; i < tier.size(); ++i)
+		{
+			CellPtr cell = tier[i];
+			if (cell->kind() == Cell::Kind::expr)
+			{
+				for (auto term: cell->expr().terms)
+				{
+					if (!(term.kind == Term::Kind::num ||
+								term.cell->kind() == Cell::Kind::num))
+						throw std::runtime_error("Dependency error for " + cell->id());
+				}
+
+				int value = (int)evaluate_expression(cell->expr());
+				cell->set_evaluated(value);
+			}
+		}
+
 	}
-	return value;
+
 }
+
