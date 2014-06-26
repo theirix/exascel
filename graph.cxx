@@ -32,11 +32,13 @@ void Graph::build(TablePtr table)
 
 	std::list<CellPtr> all_cells;
 
+	/* save all cells at first */
 	for (auto& kv: table->cells())
 		if (kv.second->kind() == Cell::Kind::expr ||
 				kv.second->kind() == Cell::Kind::num)
 			all_cells.push_back(kv.second);
-		
+	
+	/* iterate while any cell found */
 	while (!all_cells.empty())
 	{
 		CellVec current_tier;
@@ -46,6 +48,7 @@ void Graph::build(TablePtr table)
 			bool save = true;
 			if (cell->kind() == Cell::Kind::expr)
 			{
+				/* find only expr cells that lead to existing tiers */
 				for (auto t: cell->expr().terms)
 				{
 					if (t.kind == Term::Kind::ref &&
@@ -56,16 +59,21 @@ void Graph::build(TablePtr table)
 			}
 			else if (cell->kind() == Cell::Kind::num)
 			{
+				/* numeric cell is saved first */
 				save = true;
 			}
 			if (save)
 				current_tier.push_back(cell);
 		}
 
+		/* remove current tier from all cells */
 		for (auto cell: current_tier)
 			all_cells.remove(cell);
+		/* add the tier */
 		if (!current_tier.empty())
 			m_tiers.push_back(current_tier);
+		else
+			throw std::runtime_error("Dependency detection stalled " + std::to_string((long long)m_tiers.size()));
 
 		m_max_width = std::max(m_max_width, current_tier.size());
 	}
@@ -89,17 +97,17 @@ int read_ref_or_value(Term term)
 /*
  * Evaluate an expression
  */
-double evaluate_expression (Expression expression)
+int evaluate_expression (Expression expression)
 {
-	double value;
 	std::list<Term>::const_iterator 
 		left = expression.terms.begin(), right = left;
 	std::list<Operation::type>::const_iterator
 		op = expression.operations.begin();
-	value = read_ref_or_value(*left);
+
+	int value = read_ref_or_value(*left);
 	for (++right; right != expression.terms.end(); ++left, ++right, ++op)
 	{
-		double rhs = read_ref_or_value(*right);
+		int rhs = read_ref_or_value(*right);
 		switch (*op)
 		{
 			case Operation::add: value += rhs; break;
@@ -125,6 +133,9 @@ void Graph::evaluate()
 	}
 }
 
+/*
+ * Sequential evaluation of all cells
+ */
 void Graph::evaluate_seq()
 {
 	for (auto tier: m_tiers)
@@ -151,6 +162,9 @@ void Graph::evaluate_seq()
 
 }
 
+/*
+ * OpenMP evaluation of all cells
+ */
 void Graph::evaluate_openmp()
 {
 	std::cerr << "Parallel width " << m_max_width << std::endl;
@@ -159,10 +173,12 @@ void Graph::evaluate_openmp()
 #pragma omp parallel
 	for (auto tier: m_tiers)
 	{
+		/*
 #pragma omp critical
 		{
-		//std::cerr << "thread " << omp_get_thread_num() << std::endl;
+		std::cerr << "thread " << omp_get_thread_num() << std::endl;
 		}
+		*/
 #pragma omp for
 		for (size_t i = 0; i < tier.size(); ++i)
 		{
