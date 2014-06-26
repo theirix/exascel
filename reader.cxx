@@ -36,12 +36,12 @@ TablePtr read_table(std::istream& input)
 		{
 			std::getline(input, buf, delim);
 			// TO DO: Check for bad input
-			table->put(create_cell(cur_column_name + std::to_string(i + 1),buf));
+			table->put(create_cell(cur_column_name + std::to_string((long long)(i + 1)),buf));
 			cur_column_name = next_column_name(cur_column_name);
 		}
 		std::getline(input, buf);
 		// TO DO: Check for bad input
-		table->put(create_cell(cur_column_name + std::to_string(i + 1),buf));
+		table->put(create_cell(cur_column_name + std::to_string((long long)(i + 1)),buf));
 	}
 
 	return TablePtr(table);

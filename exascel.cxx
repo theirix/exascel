@@ -141,7 +141,7 @@ void Table::print(std::ostream& output)
 
 		for (int j = 0; j < w; ++j)
 		{
-			CellPtr cell = get(cur_column_name + std::to_string(i + 1));
+			CellPtr cell = get(cur_column_name + std::to_string((long long)(i + 1)));
 			switch (cell->kind())
 			{
 				case Cell::Kind::text:	output << cell->text(); break;
