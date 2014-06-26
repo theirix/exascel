@@ -153,9 +153,10 @@ void Graph::evaluate_seq()
 
 void Graph::evaluate_openmp()
 {
-	std::cerr << "Paralleling for " << m_max_width << std::endl;
+	std::cerr << "Parallel width " << m_max_width << std::endl;
 	
-#pragma omp parallel num_threads(m_max_width)
+	//num_threads(m_max_width)
+#pragma omp parallel
 	for (auto tier: m_tiers)
 	{
 #pragma omp critical
