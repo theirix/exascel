@@ -4,37 +4,52 @@
 
 using namespace domain;
 
-CellPtr create_cell(TablePtr table,std::string id, std::string text)
+void add_referenced_cell(TablePtr table,std::string id,bool isnumber,
+		std::string term)
 {
-	Cell::Kind::type new_type;
-	Cell *cell;
+	if (isnumber)
+	{
+		table->get(id)->expr().terms.push_back(Term(atoi(term.c_str())));
+	}
+	else 
+	{
+		/* dumb cell if referenced forward */
+		if (!table->is(term))
+			table->put(CellPtr(new Cell(term, Cell::TagKindNone())));
+
+		table->get(id)->expr().terms.push_back(Term(table->get(term)));
+	}
+}
+
+void create_cell(TablePtr table,std::string id, std::string text)
+{
 	if (text[0] == '\'')
 	{
-		cell = new Cell(id,text.substr(1));
-		new_type = Cell::Kind::text;
-		// std::cout << text.substr(1);
-		// std::cout.flush();
+		table->put(CellPtr(new Cell(id,text.substr(1))));
+	}
+	else if (text[0] >= '0' && text[0] <= '9')
+	{
+		/* forward-referenced numeric field is always of type None */
+		if (table->is(id))
+			table->get(id)->set_num(atoi(text.c_str()));
+		else
+			table->put(CellPtr(new Cell(id,atoi(text.c_str()))));
 	}
 	else if (text[0] == '=')
 	{
-		cell = new Cell(id);
-		new_type = Cell::Kind::expr;
 		std::string term;
-		Cell::Kind::type old_type;
 		bool isnumber = true;
-		bool isdiv = false;
-
 		char c;
 		Operation::type oper;
+
+		if (table->is(id))
+			table->get(id)->morph(Cell::Kind::expr);
+		else
+			table->put(CellPtr(new Cell(id)));
 
 		for (int i = 1; i < text.size(); ++i)
 		{
 			c = text[i];
-			// std::cout << c;
-			// std::cout.flush();
-
-			if (c == ' ')
-				continue;
 
 			if (c >= 'A' && c <= 'Z')
 			{
@@ -47,102 +62,45 @@ CellPtr create_cell(TablePtr table,std::string id, std::string text)
 				// digit
 				term += c;
 			}
+			else if (c == ' ')
+			{
+				continue;
+			}
 			else 
 			{
 				// operation
-				if (isnumber && isdiv && atoi(term.c_str()) == 0)
-				{
-					// division by zero
-				}
-
-				if (isnumber)
-				{
-					old_type = table->get(id)->get_type();
-					table->get(id)->morph(Cell::Kind::expr);
-					table->get(id)->expr().terms.push_back(Term(atoi(term.c_str())));
-					table->get(id)->morph(old_type);
-				}
-				else 
-				{
-					old_type = table->get(id)->get_type();
-					table->get(id)->morph(Cell::Kind::expr);
-					table->put(CellPtr(new Cell(term, Cell::Tag())));
-					// table->put(create_cell(table,id,buf));
-					table->get(id)->expr().terms.push_back(Term(table->get(term)));
-					table->get(id)->morph(old_type);
-				}
-				
-				term = "";
-
 				switch (c)
 				{
-					case '*': 
-					{
-						oper = Operation::mul; 
-						isdiv = false;
-					} break;
-					case '-': 
-					{
-						oper = Operation::sub;
-						isdiv = false;
-					} break;
-					case '+': 
-					{
-						oper = Operation::add; 
-						isdiv = false;
-					} break;
-					case '/': 
-					{
-						oper = Operation::div; 
-						isdiv = true;
-					} break;
-					default: ;// unknown symbol
+					case '*': oper = Operation::mul; break;
+					case '-': oper = Operation::sub; break;
+					case '+': oper = Operation::add; break;
+					case '/': oper = Operation::div; break;
+					default: throw std::runtime_error("Wrong op");
 				}
 				
-				old_type = table->get(id)->get_type();
-				table->get(id)->morph(Cell::Kind::expr);
+				add_referenced_cell(table, id, isnumber, term);
 				table->get(id)->expr().operations.push_back(oper);
-				table->get(id)->morph(old_type);
 				
 				isnumber = true;
+				term = "";
 			}
-		}
+		} // end for
+
 		// last operand
-		// TODO: check for zero if (isdiv)
-		if (isnumber)
-		{
-			old_type = table->get(id)->get_type();
-			table->get(id)->morph(Cell::Kind::expr);
-			table->get(id)->expr().terms.push_back(Term(atoi(term.c_str())));
-			table->get(id)->morph(old_type);
-		}
-		else 
-		{
-			old_type = table->get(id)->get_type();
-			table->get(id)->morph(Cell::Kind::expr);
-			table->put(CellPtr(new Cell(term, Cell::Tag())));
-			table->get(id)->expr().terms.push_back(Term(table->get(term)));	
-			table->get(id)->morph(old_type);
-		}			
+		add_referenced_cell(table, id, isnumber, term);
 	}
 	else
 	{
-		cell = new Cell(id,atoi(text.c_str()));
-		new_type = Cell::Kind::num;
+		throw std::runtime_error("Unknown input '" + text + "'");
 	}
-
-	table->get(id)->morph(new_type);
-	cell->morph(new_type);
-	// TO DO: return different cells for different text types 
-	return CellPtr(cell);
 }
 
 TablePtr read_table(std::istream& input)
 {
 	int height, width;
 	std::string buf;
-	char delim = '\t';
-	std::string cur_column_name;
+	const char delim = '\t';
+	std::string column_name;
 
 	input >> height >> width;
 
@@ -151,26 +109,20 @@ TablePtr read_table(std::istream& input)
 
 	TablePtr table(new Table(height, width));
 
-	std::string cur_id;
-
 	for (int i = 0; i < height; ++i)
 	{
-		cur_column_name = "A";
+		column_name = "A";
 		for (int j = 0; j < width - 1; ++j)
 		{
-			cur_id = cur_column_name + std::to_string((long long)(i + 1));
-
-			table->put(CellPtr(new Cell(cur_id, Cell::Tag())));
-
 			std::getline(input, buf, delim);
 			// TO DO: Check for bad input
-			table->put(create_cell(table,cur_id,buf));
-			cur_column_name = next_column_name(cur_column_name);
+			create_cell(table, domain::cell_name(column_name, i), buf);
+			column_name = next_column_name(column_name);
 		}
 		std::getline(input, buf);
 		// TO DO: Check for bad input
-		table->put(create_cell(table,cur_id,buf));
+		create_cell(table, domain::cell_name(column_name, i), buf);
 	}
 
-	return TablePtr(table);
+	return table;
 }

@@ -2,7 +2,7 @@
 #include "exascel.hh"
 #include "graph.hh"
 
-#include <omp.h>
+/*#include <omp.h>*/
 
 using namespace domain;
 
@@ -73,7 +73,8 @@ void Graph::build(TablePtr table)
 		if (!current_tier.empty())
 			m_tiers.push_back(current_tier);
 		else
-			throw std::runtime_error("Dependency detection stalled " + std::to_string((long long)m_tiers.size()));
+			throw std::runtime_error("Dependency detection stalled " + std::to_string((long long)m_tiers.size()) + 
+					", first stalled item " + all_cells.front()->describe());
 
 		m_max_width = std::max(m_max_width, current_tier.size());
 	}
@@ -85,6 +86,7 @@ void Graph::build(TablePtr table)
  */
 int read_ref_or_value(Term term)
 {
+	std::cerr << term.kind << std::endl;
 	if (term.kind == Term::Kind::ref)
 	{
 		if (term.cell->kind() != Cell::Kind::num)
@@ -140,7 +142,7 @@ void Graph::evaluate_seq()
 {
 	for (auto tier: m_tiers)
 	{
-		std::cerr << "Calculating tier\n";
+		std::cerr << "\nCalculating tier\n";
 		for (auto cell: tier)
 		{
 			if (cell->kind() == Cell::Kind::expr)
@@ -148,18 +150,17 @@ void Graph::evaluate_seq()
 				for (auto term: cell->expr().terms)
 				{
 					if (!(term.kind == Term::Kind::num ||
-								term.cell->kind() == Cell::Kind::num))
+							(term.cell->kind() == Cell::Kind::num)))
 						throw std::runtime_error("Dependency error for " + cell->id());
 				}
 
 				int value = (int)evaluate_expression(cell->expr());
-				cell->set_evaluated(value);
+				cell->set_num(value);
 				std::cerr << "For cell " << cell->id() << " val=" << value << "\n";
 			}
 		}
 
 	}
-
 }
 
 /*
@@ -193,7 +194,7 @@ void Graph::evaluate_openmp()
 				}
 
 				int value = (int)evaluate_expression(cell->expr());
-				cell->set_evaluated(value);
+				cell->set_num(value);
 			}
 		}
 

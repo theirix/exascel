@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
 
 	if (verbose)
 	{
+		table->print(std::cerr);
 		std::ofstream file("foo.dot");
 		table->print_dot(file);
 		file.close();
@@ -100,6 +101,11 @@ std::string domain::next_column_name (std::string prev_column_name)
 
 	return std::string("A") + prev_column_name;
 }
+
+std::string domain::cell_name (std::string column_name, int row)
+{
+	return column_name + std::to_string((long long)(row + 1));
+}
 		
 void Table::print_dot(std::ostream& output)
 {
@@ -122,37 +128,64 @@ void Table::print_dot(std::ostream& output)
 	output << "}\n\n";
 }
 	
+void Table::print_expression(CellPtr cell, std::ostream& output)
+{
+	std::list<Term>::const_iterator
+		term = cell->expr().terms.begin(),
+		termend = cell->expr().terms.end();
+	std::list<Operation::type>::const_iterator
+		op = cell->expr().operations.begin(),
+		opend = cell->expr().operations.end();
+
+	output << "=";
+	for (; term != termend; ++term, ++op)
+	{
+		if (term->kind == Term::Kind::ref)
+			output << term->cell->id();
+		else
+			output << term->num;
+
+		if (op != opend)
+		{
+			switch (*op)
+			{
+				case Operation::add: output << "+"; break;
+				case Operation::sub: output << "-"; break;
+				case Operation::mul: output << "*"; break;
+				case Operation::div: output << "/"; break;
+			}
+		}
+	}
+}
+
 void Table::print(std::ostream& output)
 {
 	output << '\t';
-	std::string cur_column_name = "A";
+	std::string column_name = "A";
 
 	for (int i = 0; i < w; ++i)
 	{
-		output << cur_column_name << '\t';
-		cur_column_name = next_column_name(cur_column_name);
+		output << column_name << '\t';
+		column_name = next_column_name(column_name);
 	}
-
 
 	for (int i = 0; i < h; ++i)
 	{
 		output << std::endl << (i + 1) << '\t';
-		cur_column_name = "A";
+		column_name = "A";
 
 		for (int j = 0; j < w; ++j)
 		{
-			CellPtr cell = get(cur_column_name + std::to_string((long long)(i + 1)));
+			CellPtr cell = get(cell_name(column_name, i));
 			switch (cell->kind())
 			{
 				case Cell::Kind::text:	output << cell->text(); break;
-				case Cell::Kind::num:		output << cell->num(); break;
-				case Cell::Kind::expr:	output << "[expr]"; break;
-				default:								output << "[UNKNOWN]"; break;
+				case Cell::Kind::num:	output << cell->num(); break;
+				case Cell::Kind::expr:	print_expression(cell, output);; break;
+				default:				output << "[UNKNOWN]"; break;
 			}
 			output << "\t";
-			// cur_column_name + std::to_string(i + 1) << '\t';
-			// get("A1")->text() << '\t';
-			cur_column_name = next_column_name(cur_column_name);
+			column_name = next_column_name(column_name);
 		}
 	}
 

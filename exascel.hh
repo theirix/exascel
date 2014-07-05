@@ -7,6 +7,7 @@ namespace domain
 	 * Helper functions
 	 */
 	std::string next_column_name (std::string prev_column_name);
+	std::string cell_name (std::string column_name, int row);
 
 	/*
 	 * Generic operation
@@ -79,9 +80,9 @@ namespace domain
 			// for numeric cells
 			int m_num;
 		public:
-			struct Tag{};
+			struct TagKindNone{};
 
-			Cell(std::string id, Tag)
+			Cell(std::string id, TagKindNone)
 				: m_id(id), m_kind(Kind::none)
 			{
 
@@ -106,11 +107,6 @@ namespace domain
 			void morph (Kind::type new_kind)
 			{
 				m_kind = new_kind;
-			}
-
-			Kind::type get_type ()
-			{
-				return m_kind;
 			}
 
 			std::string id() const
@@ -144,13 +140,23 @@ namespace domain
 				return m_expr;
 			}
 
-			void set_evaluated(int num)
+			void set_num(int num)
 			{
-				if (m_kind != Kind::expr)
-					throw std::runtime_error("Wrong cell type");
 				m_expr = Expression();
 				m_num = num;
 				m_kind = Kind::num;
+			}
+
+			void set_expr()
+			{
+				m_expr = Expression();
+				m_num = -1;
+				m_kind = Kind::expr;
+			}
+
+			std::string describe()
+			{
+				return "[" + id() + " kind="+std::to_string(m_kind)+"]";
 			}
 
 	};
@@ -169,6 +175,8 @@ namespace domain
 		int w;
 		int h;
 		Cells m_cells;
+
+		void print_expression(CellPtr cell_expr, std::ostream& output);
 	public:
 
 		Table (int height, int width)
@@ -179,8 +187,14 @@ namespace domain
 		CellPtr get(std::string id)
 		{
 			if (!m_cells[id])
-				throw std::runtime_error("Cannot extract empty cell by" + id);
+				throw std::runtime_error("Cannot extract empty cell by " + id);
 			return m_cells[id];
+		}
+
+		bool is(std::string id)
+		{
+			return m_cells.find(id) != m_cells.end() &&
+				m_cells.find(id)->second;
 		}
 		
 		void put(CellPtr cell)

@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <cassert>
 #include <algorithm>
+#include <functional>
+#include <iterator>
 #include <iostream>
 #include <fstream>
 
